@@ -9,6 +9,7 @@
 
 #define ATTACK 1
 #define DEFENSE 2
+#define JUDGE 3
 
 #define LONGFIVE 10
 #define LIVEFOUR 9
@@ -27,7 +28,6 @@
 #define LIVETWOANDSLEEPTWO 14
 
 int board[15][15];  //棋盘 
-int win = 0; //胜利标志
 
 struct point{  //落子的结构 
 	int x;
@@ -66,6 +66,7 @@ int StruggleScore(int rowtype,int listtype,int rightfallingtype,int leftfallingt
 void Invert(int array[]);  //数组倒序
 void SetBoard(int x,int y,int flag); //落子
 int GetMode(int array[],int mode[]); //匹配模式
+int Judge(void);
 
 int main()
 {
@@ -77,6 +78,7 @@ int main()
 	int right = 7;  //右边界 
 	int up = 7;  //上边界 
 	int down = 7;  //下边界 
+	int win = 0; //胜利标志
 
 	const char aipoint = 'o';  //ai棋子符号
 	const char playerpoint = 'X';  //玩家棋子符号
@@ -134,6 +136,7 @@ int main()
 		printf("  -------------------------------------------------\n");
 		//=================================================================
 
+		win = Judge();
 		if(win == AI)
 		{
 			printf("\nAI获得胜利。请再接再厉！");
@@ -261,6 +264,8 @@ int main()
 
 	}
 	
+	system("PAUSE");
+
 	return 0;
 }
 
@@ -355,12 +360,6 @@ int GetScore(int x,int y)
 	attackrightfallingtype = Match(rightfallingarray,ATTACK);
 	attackleftfallingtype = Match(leftfallingarray,ATTACK);
 
-	if((attackrowtype == LONGFIVE && defenserowtype != DEAFFOUR ) || (attacklisttype == LONGFIVE && defenselisttype != DEAFFOUR) || 
-		(attackleftfallingtype == LONGFIVE && defenseleftfallingtype != DEAFFOUR )|| (attackrightfallingtype == LONGFIVE && defenserightfallingtype != DEAFFOUR))
-	{
-		win = AI;
-	}
-
 	GetRowArray(x,y,rowarray,DEFENSE);  //获得行数组 
 	GetListArray(x,y,listarray,DEFENSE);  //获得列数组 
 	GetRightFallingArray(x,y,rightfallingarray,DEFENSE);  //获得捺数组 
@@ -371,11 +370,19 @@ int GetScore(int x,int y)
 	defenseleftfallingtype = Match(leftfallingarray,DEFENSE);
 	defenserightfallingtype = Match(rightfallingarray,DEFENSE);
 
+	/*
+	if((attackrowtype == LONGFIVE && defenserowtype != DEAFFOUR ) || (attacklisttype == LONGFIVE && defenselisttype != DEAFFOUR) || 
+		(attackleftfallingtype == LONGFIVE && defenseleftfallingtype != DEAFFOUR )|| (attackrightfallingtype == LONGFIVE && defenserightfallingtype != DEAFFOUR))
+	{
+		win = AI;
+	}
+
 	if((defenserowtype == LONGFIVE && attackrowtype != DEAFFOUR) || (defenselisttype == LONGFIVE && attacklisttype != DEAFFOUR) || 
 		(defenseleftfallingtype == LONGFIVE && attackleftfallingtype != DEAFFOUR) || (defenserightfallingtype == LONGFIVE && attackrightfallingtype != DEAFFOUR))
 	{
 		win = PLAYER;
 	}
+	*/
 
 	//测试代码
 	//printf("attackrowtype:%d\n",attackrowtype);
@@ -423,6 +430,10 @@ void GetRowArray(int x,int y,int rowarray[],int flag)
 	{
 		rowarray[6] = PLAYER;
 	}
+	else if(flag == JUDGE)
+	{
+		rowarray[6] = board[x][y];
+	}
 
 	for(int i = 1; i < 6; i++)
 	{
@@ -455,6 +466,10 @@ void GetListArray(int x,int y,int listarray[],int flag)
 	else if(flag == DEFENSE)
 	{
 		listarray[6] = PLAYER;
+	}
+	else if(flag == JUDGE)
+	{
+		listarray[6] = board[x][y];
 	}
 
 	for(int i = 1; i < 6; i++)
@@ -489,6 +504,10 @@ void GetRightFallingArray(int x,int y,int rightfallingarray[],int flag)
 	{
 		rightfallingarray[6] = PLAYER;
 	}
+	else if(flag == JUDGE)
+	{
+		rightfallingarray[6] = board[x][y];
+	}
 
 	for(int i = 1; i < 6; i++)
 	{
@@ -521,6 +540,10 @@ void GetLeftFallingArray(int x,int y,int leftfallingarray[],int flag)
 	else if(flag == DEFENSE)
 	{
 		leftfallingarray[6] = PLAYER;
+	}
+	else if(flag == JUDGE)
+	{
+		leftfallingarray[6] = board[x][y];
 	}
 
 	for(int i = 1; i < 6; i++)
@@ -944,4 +967,52 @@ void Invert(int array[])
 void SetBoard(int x,int y,int flag)
 {
 	board[x][y] = flag;
+}
+
+int Judge(void)
+{
+	int rowarray[13] = {SIDE,0,0,0,0,0,0,0,0,0,0,0,SIDE};
+	int listarray[13] = {SIDE,0,0,0,0,0,0,0,0,0,0,0,SIDE};
+	int rightfallingarray[13] = {SIDE,0,0,0,0,0,0,0,0,0,0,0,SIDE};
+	int leftfallingarray[13] = {SIDE,0,0,0,0,0,0,0,0,0,0,0,SIDE};
+	int judgeaiwin[] = {2,2,2,2,2,SIDE,ARRAYSIDE};
+	int judgeplayerwin[] = {1,1,1,1,1,SIDE,ARRAYSIDE};
+	int win = 0;
+	int rowflag = 0;
+	int listflag = 0;
+	int rightflag = 0;
+	int leftflag = 0;
+
+	for(int i = 0; i < 15; i++)
+	{
+		for(int j = 0; j < 15; j++)
+		{
+			GetRowArray(i,j,rowarray,JUDGE);  //获得行数组 
+			GetListArray(i,j,listarray,JUDGE);  //获得列数组 
+			GetRightFallingArray(i,j,rightfallingarray,JUDGE);  //获得捺数组 
+			GetLeftFallingArray(i,j,leftfallingarray,JUDGE);  //获得撇数组 
+
+			rowflag = GetMode(rowarray,judgeplayerwin);
+			listflag = GetMode(listarray,judgeplayerwin);
+			leftflag = GetMode(leftfallingarray,judgeplayerwin);
+			rightflag = GetMode(rightfallingarray,judgeplayerwin);
+
+			if(rowflag || listflag || leftflag || rightflag)
+			{
+				win = PLAYER;
+			}
+
+			rowflag = GetMode(rowarray,judgeaiwin);
+			listflag = GetMode(listarray,judgeaiwin);
+			leftflag = GetMode(leftfallingarray,judgeaiwin);
+			rightflag = GetMode(rightfallingarray,judgeaiwin);
+
+			if(rowflag || listflag || leftflag || rightflag)
+			{
+				win = AI;
+			}
+		}
+	}
+
+	return win;
 }
