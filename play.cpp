@@ -54,10 +54,10 @@ static int position[15][15] =   //位置分值
 point GetPosition(int left,int right,int up,int down);  //得到落子位置，返回位置 
 int GetScore(int x,int y);  //得到该点的分数并返回该分数 
 int IsNull(int x,int y);  //判断该点是否有棋子 
-void GetRowArray(int x,int y,int rowarray[]);  //得到行数组 
-void GetListArray(int x,int y,int listarray[]);  //得到列数组 
-void GetRightFallingArray(int x,int y,int rightfallingarray[]);  //得到捺数组 
-void GetLeftFallingArray(int x,int y,int leftfallingarray[]);  //得到撇数组 
+void GetRowArray(int x,int y,int rowarray[],int flag);  //得到行数组 
+void GetListArray(int x,int y,int listarray[],int flag);  //得到列数组 
+void GetRightFallingArray(int x,int y,int rightfallingarray[],int flag);  //得到捺数组 
+void GetLeftFallingArray(int x,int y,int leftfallingarray[],int flag);  //得到撇数组 
 int Max(int row,int list,int rightfalling,int leftfalling);  //计算四个参数的最大值并返回 
 int Match(int array[],int turn);  //匹配模式，如果匹配到就返回1，匹配不到就返回0 
 int StruggleScore(int rowtype,int listtype,int rightfallingtype,int leftfallingtype);  //判断组合分数 
@@ -299,14 +299,14 @@ int GetScore(int x,int y)
 	int defenseleftfallingtype = 0;
 	int attackscore = 0;
 	int defensescore = 0;
-	int score = 0;  //(x,y)的得分 	
 
-	GetRowArray(x,y,rowarray);  //获得行数组 
-	GetListArray(x,y,listarray);  //获得列数组 
-	GetRightFallingArray(x,y,rightfallingarray);  //获得捺数组 
-	GetLeftFallingArray(x,y,leftfallingarray);  //获得撇数组 
+	GetRowArray(x,y,rowarray,ATTACK);  //获得行数组 
+	GetListArray(x,y,listarray,ATTACK);  //获得列数组 
+	GetRightFallingArray(x,y,rightfallingarray,ATTACK);  //获得捺数组 
+	GetLeftFallingArray(x,y,leftfallingarray,ATTACK);  //获得撇数组 
 	
 	//测试代码 
+	/*
 	printf("\n行数组：[");
 	for(int i = 0; i < 13; i++)
 	{
@@ -328,12 +328,18 @@ int GetScore(int x,int y)
 		printf("%d, ",leftfallingarray[i]);
 	}
 	printf("]\n");
+	*/
 	//===============================================
 	
 	attackrowtype = Match(rowarray,ATTACK);
 	attacklisttype = Match(listarray,ATTACK);
 	attackrightfallingtype = Match(rightfallingarray,ATTACK);
 	attackleftfallingtype = Match(leftfallingarray,ATTACK);
+
+	GetRowArray(x,y,rowarray,DEFENSE);  //获得行数组 
+	GetListArray(x,y,listarray,DEFENSE);  //获得列数组 
+	GetRightFallingArray(x,y,rightfallingarray,DEFENSE);  //获得捺数组 
+	GetLeftFallingArray(x,y,leftfallingarray,DEFENSE);  //获得撇数组 
 
 	defenserowtype = Match(rowarray,DEFENSE);
 	defenselisttype = Match(listarray,DEFENSE);
@@ -360,17 +366,8 @@ int GetScore(int x,int y)
 	attackscore = StruggleScore(attackrowtype,attacklisttype,attackrightfallingtype,attackleftfallingtype) + position[x][y];  //加上位置分的进攻得分
 
 	defensescore = StruggleScore(defenserowtype,defenselisttype,defenserightfallingtype,defenseleftfallingtype) + position[x][y];  //加上位置分的防御得分
-	
-	if(attackscore >= defensescore)
-	{
-		score = attackscore;
-	}
-	else
-	{
-		score = defensescore;
-	}
 
-	return score;
+	return (attackscore + defensescore);
 }
 
 int IsNull(int x,int y)  //判断是否有棋子 
@@ -385,9 +382,17 @@ int IsNull(int x,int y)  //判断是否有棋子
 	}
 } 
 
-void GetRowArray(int x,int y,int rowarray[])
+void GetRowArray(int x,int y,int rowarray[],int flag)
 {
-	rowarray[6] = 0;
+	if(flag == ATTACK)
+	{
+		rowarray[6] = AI;
+	}
+	else if(flag == DEFENSE)
+	{
+		rowarray[6] = PLAYER;
+	}
+
 	for(int i = 1; i < 6; i++)
 	{
 		if(y+i > 14)  //判断是否超越右边界 
@@ -410,9 +415,17 @@ void GetRowArray(int x,int y,int rowarray[])
 	}
 }
 
-void GetListArray(int x,int y,int listarray[])
+void GetListArray(int x,int y,int listarray[],int flag)
 {
-	listarray[6] = 0;
+	if(flag == ATTACK)
+	{
+		listarray[6] = AI;
+	}
+	else if(flag == DEFENSE)
+	{
+		listarray[6] = PLAYER;
+	}
+
 	for(int i = 1; i < 6; i++)
 	{
 		if(x+i > 14)  //判断是否超越下边界 
@@ -435,9 +448,17 @@ void GetListArray(int x,int y,int listarray[])
 	}
 }
 
-void GetRightFallingArray(int x,int y,int rightfallingarray[])
+void GetRightFallingArray(int x,int y,int rightfallingarray[],int flag)
 {
-	rightfallingarray[6] = 0;
+	if(flag == ATTACK)
+	{
+		rightfallingarray[6] = AI;
+	}
+	else if(flag == DEFENSE)
+	{
+		rightfallingarray[6] = PLAYER;
+	}
+
 	for(int i = 1; i < 6; i++)
 	{
 		if(y+i > 14 || x+i > 14)  //判断是否超过下边界和右边界 
@@ -460,9 +481,17 @@ void GetRightFallingArray(int x,int y,int rightfallingarray[])
 	}
 }
 
-void GetLeftFallingArray(int x,int y,int leftfallingarray[])
+void GetLeftFallingArray(int x,int y,int leftfallingarray[],int flag)
 {
-	leftfallingarray[6] = 0;
+	if(flag == ATTACK)
+	{
+		leftfallingarray[6] = AI;
+	}
+	else if(flag == DEFENSE)
+	{
+		leftfallingarray[6] = PLAYER;
+	}
+
 	for(int i = 1; i < 6; i++)
 	{
 		if(x+i > 14 || y-i < 0)  //判断是否超过左边界和下边界 
@@ -514,8 +543,19 @@ int Match(int array[],int turn)
 	int type[] = {LONGFIVE,LIVEFOUR,CLASHFOUR,CLASHFOUR,CLASHFOUR,LIVETHREE,LIVETHREE,SLEEPTHREE,SLEEPTHREE,SLEEPTHREE,SLEEPTHREE
 		,SLEEPTHREE,SLEEPTHREE,LIVETWO,LIVETWO,LIVETWO,SLEEPTWO,SLEEPTWO,SLEEPTWO,SLEEPTWO,SLEEPTWO,SLEEPTWO,DEAFFOUR,DEAFTHREE,DEAFTWO};
 	int score = 0; 
-	int playerscore = 1;
-	int aiscore = 2;
+	int playerscore = 0;
+	int aiscore = 0;
+	if(turn == ATTACK)
+	{
+		//寻找对自己有利的情况 
+		playerscore = 2;
+		aiscore = 1;
+	}
+	else if(turn == DEFENSE)
+	{
+		playerscore = 1;
+		aiscore = 2;
+	}
 	
 	int situation1[] = {playerscore,playerscore,playerscore,playerscore,playerscore,SIDE,ARRAYSIDE};
 	int situation2[] = {0,playerscore,playerscore,playerscore,playerscore,0,SIDE,ARRAYSIDE};
@@ -546,18 +586,6 @@ int Match(int array[],int turn)
 	int *mode[] = {situation1,situation2,situation3,situation4,situation5,situation6,situation7,situation8,situation9,situation10,situation11
 		,situation12,situation13,situation14,situation15,situation16,situation17,situation18,situation19,situation20,situation21,situation22
 		,situation23,situation24,situation25};
-	
-	if(turn == ATTACK)
-	{
-		//寻找对自己有利的情况 
-		playerscore = 2;
-		aiscore = 1;
-	}
-	else if(turn == DEFENSE)
-	{
-		playerscore = 1;
-		aiscore = 2;
-	}
 	
 	for(int i = 0; i < 25; i++)
 	{
@@ -854,7 +882,7 @@ int StruggleScore(int rowtype,int listtype,int rightfallingtype,int leftfallingt
 			returnscore = 10000;
 			break;
 		case CLASHFOUR:
-			returnscore = 50000;
+			returnscore = 500;
 			break;
 		case LONGFIVE:
 			returnscore = 100000;
