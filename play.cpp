@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlib.h>
 
 #define SIDE -1 
 #define ARRAYSIDE -2
@@ -26,6 +27,7 @@
 #define LIVETWOANDSLEEPTWO 14
 
 int board[15][15];  //棋盘 
+int win = 0; //胜利标志
 
 struct point{  //落子的结构 
 	int x;
@@ -82,7 +84,7 @@ int main()
 	printf("===============================================\n");
 	printf("本算法仅为测试版\n");
 	printf("我们将通过输入和输出坐标的方式与玩家进行对战\n");
-	printf("===============================================\n\n\n");
+	printf("===============================================\n");
 	printf("请选择：\n1、玩家先手\n2、AI先手\n");
 	printf("请输入（1|2）");
 
@@ -130,6 +132,22 @@ int main()
 			}
 		}
 		printf("  -------------------------------------------------\n");
+		//=================================================================
+
+		if(win == AI)
+		{
+			printf("\nAI获得胜利。请再接再厉！");
+			break;
+		}
+		else if(win == PLAYER)
+		{
+			printf("\n恭喜！您已获得胜利！");
+			break;
+		}
+		else
+		{
+			//没有人获得胜利，比赛继续
+		}
 
 		switch(flag)
 		{
@@ -240,6 +258,7 @@ int main()
 				flag = PLAYER;
 				break;
 		}
+
 	}
 	
 	return 0;
@@ -269,8 +288,8 @@ point GetPosition(int left,int right,int up,int down)
 					//此点打分低，舍弃 
 				}
 				//测试代码
-				printf("打分情况：(%d,%d):",i,j);
-				printf("%d\n",score); 
+				//printf("打分情况：(%d,%d):",i,j);
+				//("%d\n",score); 
 				//======================================
 			}
 			else
@@ -336,6 +355,11 @@ int GetScore(int x,int y)
 	attackrightfallingtype = Match(rightfallingarray,ATTACK);
 	attackleftfallingtype = Match(leftfallingarray,ATTACK);
 
+	if(attackrowtype == LONGFIVE || attacklisttype == LONGFIVE || attackleftfallingtype == LONGFIVE || attackrightfallingtype == LONGFIVE)
+	{
+		win = AI;
+	}
+
 	GetRowArray(x,y,rowarray,DEFENSE);  //获得行数组 
 	GetListArray(x,y,listarray,DEFENSE);  //获得列数组 
 	GetRightFallingArray(x,y,rightfallingarray,DEFENSE);  //获得捺数组 
@@ -345,6 +369,11 @@ int GetScore(int x,int y)
 	defenselisttype = Match(listarray,DEFENSE);
 	defenseleftfallingtype = Match(leftfallingarray,DEFENSE);
 	defenserightfallingtype = Match(rightfallingarray,DEFENSE);
+
+	if(defenserowtype == LONGFIVE || defenselisttype == LONGFIVE || defenseleftfallingtype == LONGFIVE || defenserightfallingtype == LONGFIVE)
+	{
+		win = PLAYER;
+	}
 
 	//测试代码
 	//printf("attackrowtype:%d\n",attackrowtype);
