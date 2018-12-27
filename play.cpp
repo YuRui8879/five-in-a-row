@@ -355,7 +355,8 @@ int GetScore(int x,int y)
 	attackrightfallingtype = Match(rightfallingarray,ATTACK);
 	attackleftfallingtype = Match(leftfallingarray,ATTACK);
 
-	if(attackrowtype == LONGFIVE || attacklisttype == LONGFIVE || attackleftfallingtype == LONGFIVE || attackrightfallingtype == LONGFIVE)
+	if((attackrowtype == LONGFIVE && defenserowtype != DEAFFOUR ) || (attacklisttype == LONGFIVE && defenselisttype != DEAFFOUR) || 
+		(attackleftfallingtype == LONGFIVE && defenseleftfallingtype != DEAFFOUR )|| (attackrightfallingtype == LONGFIVE && defenserightfallingtype != DEAFFOUR))
 	{
 		win = AI;
 	}
@@ -370,7 +371,8 @@ int GetScore(int x,int y)
 	defenseleftfallingtype = Match(leftfallingarray,DEFENSE);
 	defenserightfallingtype = Match(rightfallingarray,DEFENSE);
 
-	if(defenserowtype == LONGFIVE || defenselisttype == LONGFIVE || defenseleftfallingtype == LONGFIVE || defenserightfallingtype == LONGFIVE)
+	if((defenserowtype == LONGFIVE && attackrowtype != DEAFFOUR) || (defenselisttype == LONGFIVE && attacklisttype != DEAFFOUR) || 
+		(defenseleftfallingtype == LONGFIVE && attackleftfallingtype != DEAFFOUR) || (defenserightfallingtype == LONGFIVE && attackrightfallingtype != DEAFFOUR))
 	{
 		win = PLAYER;
 	}
