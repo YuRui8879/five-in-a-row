@@ -53,7 +53,7 @@ static int position[15][15] =   //位置分值
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
-point GetPosition(int left,int right,int up,int down);  //得到落子位置，返回位置 
+point GetPosition(int left,int right,int up,int down,int tree,int depth);  //得到落子位置，返回位置 
 int GetScore(int x,int y);  //得到该点的分数并返回该分数 
 int IsNull(int x,int y);  //判断该点是否有棋子 
 void GetRowArray(int x,int y,int rowarray[],int flag);  //得到行数组 
@@ -66,7 +66,9 @@ int StruggleScore(int rowtype,int listtype,int rightfallingtype,int leftfallingt
 void Invert(int array[]);  //数组倒序
 void SetBoard(int x,int y,int flag); //落子
 int GetMode(int array[],int mode[]); //匹配模式
-int Judge(void);
+int Judge(void); //判断胜利函数
+//α-β剪枝算法
+int maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left,int right,int up,int down,int x,int y);
 
 int main()
 {
@@ -79,6 +81,8 @@ int main()
 	int up = 7;  //上边界 
 	int down = 7;  //下边界 
 	int win = 0; //胜利标志
+	int tree = 0; //是否使用博弈树标志
+	int depth = 0; //博弈树参数
 
 	const char aipoint = 'o';  //ai棋子符号
 	const char playerpoint = 'X';  //玩家棋子符号
@@ -87,12 +91,20 @@ int main()
 	printf("本算法仅为测试版\n");
 	printf("我们将通过输入和输出坐标的方式与玩家进行对战\n");
 	printf("===============================================\n");
+	printf("请选择是否使用博弈树(1.使用 | 0.不使用):");
+	scanf("%d",&tree);
+	if(tree == 1)
+	{
+		printf("请输入博弈树的深度(0~6):");
+		scanf("%d",&depth);
+	}
 	printf("请选择：\n1、玩家先手\n2、AI先手\n");
 	printf("请输入（1|2）");
-
 	scanf("%d",&flag);
 	
 	printf("\n");
+
+
 	
 	while(1)
 	{
@@ -163,8 +175,15 @@ int main()
 					scanf("%d",&player.y);
 					if(IsNull(player.x,player.y))
 					{
-						SetBoard(player.x,player.y,PLAYER);
-						break;
+						if(player.x < 0 || player.x > 14 || player.y < 0 || player.y > 14)
+						{
+							printf("\n您选择的位置在棋盘外，请重新选择\n");
+						}
+						else
+						{
+							SetBoard(player.x,player.y,PLAYER);
+							break;
+						}
 					}
 					else
 					{
@@ -219,7 +238,7 @@ int main()
 				}
 				else
 				{
-					ai = GetPosition(left,right,up,down);  //计算落点 
+					ai = GetPosition(left,right,up,down,tree,depth);  //计算落点 
 					SetBoard(ai.x,ai.y,AI);
 				}
 				printf("\nAI落子为：(%d,%d)\n",ai.x,ai.y);
@@ -269,7 +288,7 @@ int main()
 	return 0;
 }
 
-point GetPosition(int left,int right,int up,int down)
+point GetPosition(int left,int right,int up,int down,int tree,int depth)
 {
 	int max = 0;
 	point xy;
@@ -281,17 +300,35 @@ point GetPosition(int left,int right,int up,int down)
 		{
 			if(IsNull(i,j))
 			{
-				score = GetScore(i,j);
-				if(max <= score)
+				if(tree == 0)
 				{
-					max = score;
-					xy.x = i;
-					xy.y = j;
+					score = GetScore(i,j);
+					if(max <= score)
+					{
+						max = score;
+						xy.x = i;
+						xy.y = j;
+					}
+					else
+					{
+						//此点打分低，舍弃 
+					}
 				}
-				else
+				else  //启用博弈树
 				{
-					//此点打分低，舍弃 
+					score = maxmin(AI,board,-1000000,1000000,depth,left,right,up,down,i,j);
+					if(max <= score)
+					{
+						max = score;
+						xy.x = i;
+						xy.y = j;
+					}
+					else
+					{
+						//此点打分低，舍弃 
+					}
 				}
+				
 				//测试代码
 				//printf("打分情况：(%d,%d):",i,j);
 				//("%d\n",score); 
@@ -1016,3 +1053,143 @@ int Judge(void)
 
 	return win;
 }
+
+//伪代码，要修改
+
+// player = 2 表示轮到AI， player = 1 表示轮到玩家  
+// cur_node 表示当前局面(结点)  
+int maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left,int right,int up,int down,int x,int y)  
+{  
+	int val = 0;
+	int next_node[15][15];
+
+	for(int i = 0; i < 15; i++)
+	{
+		for(int j = 0; j < 15; j++)
+		{
+			next_node[i][j] = cur_node[i][j];
+		}
+	}
+
+    if(depth == 0)  //达到终结局面 
+	{
+		return GetScore(x,y); //该局面结点的估价值 f  
+	}
+
+    if(player == AI) // 轮到AI走  
+	{
+		for(int i = left; i <= right; i++)
+		{
+			for(int j = up; j <= down; j++)
+			{
+				if(IsNull(i,j))
+				{
+					next_node[i][j] = AI; // 遍历当前局面 cur_node 的所有子局面  
+
+					if(j - 5 < left)  //更新边界信息 
+					{
+						left = j - 5;
+					}
+					if(j + 5 > right)
+					{
+						right = j + 5;
+					}
+					if(i - 5 < up)
+					{
+						up = i - 5;
+					}
+					if(i + 5 > down)
+					{
+						down = i + 5;
+					}
+					
+					if(left < 0)
+					{
+						left = 0;
+					}
+					if(right > 14)
+					{
+						right = 14;
+					}
+					if(up < 0)
+					{
+						up = 0;
+					}
+					if(down > 14)
+					{
+						down = 14;
+					}
+
+					val = maxmin(PLAYER, next_node, alpha, beta,depth - 1,left,right,up,down,i,j); // 把新产生的局面交给对方，对方返回一个新局面的估价值  
+					if(val > alpha)
+					{
+						alpha = val;  
+					} 
+					if(alpha > beta)
+					{
+						return alpha;
+					}
+				}
+			}
+		}
+		return alpha; 
+	}
+    else // 轮到玩家走  
+	{
+		for(int i = left; i <= right; i++)
+		{
+			for(int j = up; j <= down; j++)
+			{
+				if(IsNull(i,j))
+				{
+					next_node[i][j] = PLAYER; // 遍历当前局面 cur_node 的所有子局面 
+
+					if(j - 5 < left)  //更新边界信息 
+					{
+						left = j - 5;
+					}
+					if(j + 5 > right)
+					{
+						right = j + 5;
+					}
+					if(i - 5 < up)
+					{
+						up = i - 5;
+					}
+					if(i + 5 > down)
+					{
+						down = i + 5;
+					}
+					
+					if(left < 0)
+					{
+						left = 0;
+					}
+					if(right > 14)
+					{
+						right = 14;
+					}
+					if(up < 0)
+					{
+						up = 0;
+					}
+					if(down > 14)
+					{
+						down = 14;
+					}
+
+					val = maxmin(AI, next_node, alpha, beta,depth - 1,left,right,up,down,i,j); // 把新产生的局面交给对方，对方返回一个新局面的估价值  
+					if(val < beta)
+					{
+						beta = val;
+					}   
+					if(alpha > beta) 
+					{
+						return beta;  
+					}
+				}
+			}
+		}  
+        return beta; 
+	}
+}  
