@@ -68,7 +68,7 @@ void SetBoard(int x,int y,int flag); //落子
 int GetMode(int array[],int mode[]); //匹配模式
 int Judge(void); //判断胜利函数
 //α-β剪枝算法
-int maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left,int right,int up,int down,int x,int y);
+int Maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left,int right,int up,int down,int x,int y);
 
 int main()
 {
@@ -316,7 +316,7 @@ point GetPosition(int left,int right,int up,int down,int tree,int depth)
 				}
 				else  //启用博弈树
 				{
-					score = maxmin(AI,board,-1000000,1000000,depth,left,right,up,down,i,j);
+					score = Maxmin(AI,board,-1000000,1000000,depth,left,right,up,down,i,j);
 					if(max <= score)
 					{
 						max = score;
@@ -1058,7 +1058,7 @@ int Judge(void)
 
 // player = 2 表示轮到AI， player = 1 表示轮到玩家  
 // cur_node 表示当前局面(结点)  
-int maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left,int right,int up,int down,int x,int y)  
+int Maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left,int right,int up,int down,int x,int y)  
 {  
 	int val = 0;
 	int next_node[15][15];
@@ -1120,7 +1120,7 @@ int maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left
 						down = 14;
 					}
 
-					val = maxmin(PLAYER, next_node, alpha, beta,depth - 1,left,right,up,down,i,j); // 把新产生的局面交给对方，对方返回一个新局面的估价值  
+					val = Maxmin(PLAYER, next_node, alpha, beta,depth - 1,left,right,up,down,i,j); // 把新产生的局面交给对方，对方返回一个新局面的估价值  
 					if(val > alpha)
 					{
 						alpha = val;  
@@ -1178,7 +1178,7 @@ int maxmin(int player,int cur_node[15][15],int alpha,int beta,int depth,int left
 						down = 14;
 					}
 
-					val = maxmin(AI, next_node, alpha, beta,depth - 1,left,right,up,down,i,j); // 把新产生的局面交给对方，对方返回一个新局面的估价值  
+					val = Maxmin(AI, next_node, alpha, beta,depth - 1,left,right,up,down,i,j); // 把新产生的局面交给对方，对方返回一个新局面的估价值  
 					if(val < beta)
 					{
 						beta = val;
