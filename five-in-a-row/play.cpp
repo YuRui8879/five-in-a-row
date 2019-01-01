@@ -182,6 +182,7 @@ int main()
 						else
 						{
 							SetBoard(player.x,player.y,PLAYER);
+							temp = 1;
 							break;
 						}
 					}
